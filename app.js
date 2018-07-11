@@ -1,20 +1,5 @@
 (function($) {
-	const devices = [];
-
-	devices.push({
-		user: "Mary",
-		name: "Mary's iPhone",
-	});
-
-	devices.push({
-		user: "Alex",
-		name: "Alex's Surface Pro",
-	});
-
-	devices.push({
-		user: "Mary",
-		name: "Mary's Macbook",
-	});
+	const devices = JSON.parse(localStorage.getItem('devices')) || [];
 
 	$(function(e) {
 		var table = $('#devices');
@@ -38,7 +23,13 @@
 					user: user.val(),
 					name: name.val(),
 				});
-				console.log(devices);
+
+				user.val('');
+				name.val('');
+
+				localStorage.setItem('devices', JSON.stringify(devices));
+				
+				location.href = 'device-list.html';
 			},
 		}
 	};

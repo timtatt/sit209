@@ -12,6 +12,7 @@
 
 	function _events() {
 		$('#add-device').on('click', events.onClick.addDevice);
+		$('#send-command').on('click', events.onClick.sendCommand);
 	}
 
 	var events = {
@@ -30,6 +31,10 @@
 				localStorage.setItem('devices', JSON.stringify(devices));
 				
 				location.href = 'device-list.html';
+			},
+			sendCommand: function(event) {
+				var command = $('#command');
+				console.log(`command is: ${command.val()}`);
 			},
 		}
 	};

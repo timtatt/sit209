@@ -9,7 +9,7 @@ app.use(express.static('public'));
 var availablePaths = [
 	{
 		url: 'register-device',
-		file: 'reigster-device.html',
+		file: 'register-device.html',
 	},
 	{
 		url: 'send-command',
@@ -22,6 +22,18 @@ var availablePaths = [
 	{
 		url: '',
 		file: 'device-list.html',
+	},
+	{
+		url: 'device-history',
+		file: 'device-history.html',
+	},
+	{
+		url: 'register',
+		file: 'registration.html',
+	},
+	{
+		url: 'login',
+		file: 'login.html',
 	}
 ];
 

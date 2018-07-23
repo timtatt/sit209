@@ -1,7 +1,7 @@
 (function($) {
 	var self, table;
 
-	var apiUrl = 'http://localhost:5000/api';
+	var apiUrl = 'https://217-288-933-sit-209.now.sh/api';
 	var devices = [];
 	var currentUser = localStorage.getItem('user') || false;
 	var isAdmin = localStorage.getItem('isAdmin') || false;

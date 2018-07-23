@@ -1,22 +1,23 @@
 (function($) {
 	var self, table;
 
+	var apiUrl = 'http://localhost:5000/api';
 	var devices = [];
-	var users = JSON.parse(localStorage.getItem('users')) || [];
-	var isAuth = JSON.parse(localStorage.getItem('isAuth')) || false;
-	
-	$.get('http://localhost:3001/devices').then(response => {
-		devices = response;
-		devices.forEach(function(device) {
-			table.find('tbody').append(`<tr><td>${device.user}</td><td>${device.name}</td></tr>`);
-		});
-	}).catch(error => {
-		console.error(`Error ${error}`);
-	});
+	var currentUser = localStorage.getItem('user') || false;
+	var isAdmin = localStorage.getItem('isAdmin') || false;
+	var modals = {};
+	var tables = {};
 
 	$(function(e) {
 		self = $(document);
-		table = $('#devices');
+		
+		tables = {
+			devices: self.find('#table-devices'),
+			deviceHistory: self.find('#table-device-history'),
+		};
+		modals = {
+			deviceHistory: self.find('#modal-device-history'),
+		};
 		
 
 		_init();
@@ -24,15 +25,31 @@
 	});
 
 	function _init() {
-		$('#navbar').load('navbar.html', function() {
-			if (isAuth) {
-				$('#navbar a#login').hide();
+		self.find('#navbar').load('navbar.html', function() {
+			if (currentUser) {
+				self.find('#navbar a#login').hide();
 			} else {
-				$('#navbar a#logout').hide();
+				self.find('#navbar a#logout').hide();
 			}
 		});
-		$('#footer').load('footer.html');
+		self.find('#footer').load('footer.html');
 
+		if (currentUser) {
+			$.get(`${apiUrl}/users/${currentUser}/devices`).then(res => {
+				res.forEach(device => {
+					tables.devices.find('tbody').append(`
+						<tr data-device-id="${device._id}">
+							<td>${device.user}</td>
+							<td>${device.name}</td>
+						</tr>
+					`);
+				});
+			}).catch(err => {
+				console.error('Error:', err);
+			});
+		} else if (window.location.pathname != '/login') {
+			location.href = '/login';
+		}
 	}
 
 	function _events() {
@@ -41,10 +58,30 @@
 		self.on('click', '#register', events.onClick.registerAccount);
 		self.on('click', 'button#login', events.onClick.loginToAccount);
 		self.on('click', 'a#logout', events.onClick.logoutOfAccount);
+
+		tables.devices.on('click', 'tbody tr', events.onClick.openDeviceHistory);
 	}
 
 	var events = {
 		onClick: {
+			openDeviceHistory: function(event) {
+				var button = $(event.currentTarget);
+				var deviceId = button.data('device-id');
+				$.get(`${apiUrl}/devices/${deviceId}/device-history`).then(res => {
+					tables.deviceHistory.find('tbody').html('');
+					res.forEach(row => {
+						tables.deviceHistory.find('tbody').append(`
+							<tr>
+								<td>${row.ts}</td>
+								<td>${row.temp}</td>
+								<td>${row.loc.lat}</td>
+								<td>${row.loc.lng}</td>
+							</tr>
+						`);
+					});
+					modals.deviceHistory.modal('show');
+				});
+			},
 			addDevice: function(event) {
 				var user = $('#user');
 				var name = $('#name');
@@ -56,14 +93,20 @@
 					sensorData: sensorData,
 				};
 
-				user.val('');
-				name.val('');
-
-				$.post('http://localhost:3001/devices', body).then(response => {
+				$.ajax({
+					url: `${apiUrl}/devices`,
+					method: 'post',
+					data: JSON.stringify(body),
+					contentType: 'application/json',
+					dataType: 'json',
+				}).then(res => {
 					location.href = '/';
 				}).catch(error => {
-					console.error(`Error ${error}`);
+					console.error('Error:', error);
 				});
+
+				user.val('');
+				name.val('');
 			},
 			sendCommand: function(event) {
 				var command = $('#command');
@@ -71,6 +114,7 @@
 			},
 			logoutOfAccount: function(event) {
 				localStorage.setItem('isAuth', false);
+				localStorage.removeItem('user');
 
 				location.href = '/login';
 			},
@@ -80,16 +124,28 @@
 				var username = $('#username');
 				var password = $('#password');
 
-				var existingUser = users.find(user => user.username == username.val() && user.password == password.val());
+				$.ajax({
+					url: `${apiUrl}/authenticate`,
+					method: 'post',
+					data: JSON.stringify({
+						user: username.val(),
+						password: password.val(),
+					}),
+					contentType: 'application/json',
+					dataType: 'json',
+				}).then(res => {
+					if (res.status == 'error') {
+						$('#navbar + .container').prepend(`<div class="alert alert-danger" id="error-login">${res.message}</div>`);
+						return;
+					}
 
-				if (typeof existingUser === 'undefined') {
-					$('#navbar + .container').prepend('<div class="alert alert-danger" id="error-login">Incorrect username or password. Please try again.</div>');
-					return;
-				}
+					localStorage.setItem('user', res.user);
+					localStorage.setItem('isAdmin', res.isAdmin);
 
-				localStorage.setItem('isAuth', true);
-
-				location.href = '/';
+					location.href = '/';
+				}).catch(error => {
+					console.error('Error:', error);
+				});
 			},
 			registerAccount: function(event) {
 				$('#error-register').remove();
@@ -98,15 +154,8 @@
 				var password = $('#password');
 				var confirmPassword = $('#confirm-password');
 
-				var existingUser = users.find(user => user.username == username.val());
-
 				if (username.val() == '' || password.val() == '') {
 					$('#navbar + .container').prepend('<div class="alert alert-danger" id="error-register">Please fill in all fields</div>');
-					return;
-				}
-
-				if (typeof existingUser !== 'undefined') {
-					$('#navbar + .container').prepend('<div class="alert alert-danger" id="error-register">Sorry, that username already exists. Please try again</div>');
 					return;
 				}
 
@@ -115,13 +164,33 @@
 					return;
 				}
 
-				users.push({
-					username: username.val(),
-					password: password.val(),
-				});
+				$.ajax({
+					url: `${apiUrl}/register`,
+					method: 'post',
+					data: JSON.stringify({
+						user: username.val(),
+						password: password.val(),
+						isAdmin: false,
+					}),
+					contentType: 'application/json',
+					dataType: 'json',
+				}).then(res => {
+					if (res.status == 'error') {
+						$('#navbar + .container').prepend(`<div class="alert alert-danger" id="error-login">${res.message}</div>`);
+						return;
+					}
+
+					localStorage.setItem('user', res.user);
+					localStorage.setItem('isAdmin', res.isAdmin);
+
+					location.href = '/';
+				}).catch(error => {
+					console.error('Error:', error);
+				});				
 
 				localStorage.setItem('isAuth', true);
-				localStorage.setItem('users', JSON.stringify(users));
+				localStorage.setItem('isAdmin', false);
+				localStorage.setItem('user', username.val());
 
 				$('#navbar + .container').prepend('<div class="alert alert-success" id="error-register">User successfully created</div>');
 

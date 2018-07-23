@@ -5,12 +5,14 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+    "deploy": "git subtree push --prefix web heroku master"
   },
   "author": "Tim Tattersall",
   "license": "ISC",
   "dependencies": {
     "express": "^4.16.3",
+    "heroku": "^7.7.4",
     "nodemon": "^1.18.3",
     "underscore": "^1.9.1"
   }

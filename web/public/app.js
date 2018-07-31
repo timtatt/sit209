@@ -127,13 +127,12 @@
 						$('#navbar + .container').prepend(`<div class="alert alert-danger" id="error-login">${res.message}</div>`);
 						return;
 					}
-
-					location.href = '/';
 				}).catch(error => {
 					console.error('Error:', error);
 				});
-				
-				console.log(`command is: ${command.val()}`);
+
+				command.val('');
+				deviceId.val('');
 			},
 			logoutOfAccount: function(event) {
 				localStorage.setItem('isAuth', false);

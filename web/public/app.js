@@ -117,8 +117,8 @@
 					url: `${mqttUrl}/send-command`,
 					method: 'post',
 					data: JSON.stringify({
-						user: username.val(),
-						password: password.val(),
+						command: command.val(),
+						deviceId: deviceId.val(),
 					}),
 					contentType: 'application/json',
 					dataType: 'json',
@@ -151,8 +151,8 @@
 					url: `${apiUrl}/authenticate`,
 					method: 'post',
 					data: JSON.stringify({
-						command: command.val(),
-						deviceId: deviceId.val(),
+						user: username.val(),
+						password: password.val(),
 					}),
 					contentType: 'application/json',
 					dataType: 'json',

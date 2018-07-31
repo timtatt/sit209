@@ -114,11 +114,11 @@
 				var command = $('#command');
 
 				$.ajax({
-					url: `${apiUrl}/authenticate`,
+					url: `${mqttUrl}/send-command`,
 					method: 'post',
 					data: JSON.stringify({
-						command: command.val(),
-						deviceId: deviceId.val(),
+						user: username.val(),
+						password: password.val(),
 					}),
 					contentType: 'application/json',
 					dataType: 'json',
@@ -127,9 +127,6 @@
 						$('#navbar + .container').prepend(`<div class="alert alert-danger" id="error-login">${res.message}</div>`);
 						return;
 					}
-
-					localStorage.setItem('user', res.user);
-					localStorage.setItem('isAdmin', res.isAdmin);
 
 					location.href = '/';
 				}).catch(error => {
@@ -151,11 +148,11 @@
 				var password = $('#password');
 
 				$.ajax({
-					url: `${mqttUrl}/send-command`,
+					url: `${apiUrl}/authenticate`,
 					method: 'post',
 					data: JSON.stringify({
-						user: username.val(),
-						password: password.val(),
+						command: command.val(),
+						deviceId: deviceId.val(),
 					}),
 					contentType: 'application/json',
 					dataType: 'json',
@@ -164,6 +161,9 @@
 						$('#navbar + .container').prepend(`<div class="alert alert-danger" id="error-login">${res.message}</div>`);
 						return;
 					}
+
+					localStorage.setItem('user', res.user);
+					localStorage.setItem('isAdmin', res.isAdmin);
 
 					location.href = '/';
 				}).catch(error => {

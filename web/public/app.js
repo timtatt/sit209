@@ -2,7 +2,7 @@
 	var self, table;
 
 	var apiUrl = 'https://217-288-933-sit-209.now.sh/api';
-	var mqttUrl = 'https://mqtt-217-288-933-sit-209.now.sh/send-command';
+	var mqttUrl = 'https://mqtt-217-288-933-sit-209.now.sh';
 	var devices = [];
 	var currentUser = localStorage.getItem('user') || false;
 	var isAdmin = localStorage.getItem('isAdmin') || false;

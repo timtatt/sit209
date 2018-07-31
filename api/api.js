@@ -244,25 +244,6 @@ app.post('/api/authenticate', (req, res) => {
 	});
 });
 
-
-/**
-* @api {post} /api/send-command Sends a command to NodeJS server
-* @apiName SendCommand
-* @apiGroup Command
-* @apiSuccessExample {json} Success Response:
-* {
-* 	"status": "success"
-* }
-* @apiErrorExample {json} Error Response:
-* {
-* 	"status": "error"
-* }
-*/
-app.post('/api/send-command', (req, res) => {
-	console.log(req.body.command);
-	res.send({status: 'success'});
-});
-
 app.listen(port, () => {
 	console.log(`listening on port ${port}`);
 });

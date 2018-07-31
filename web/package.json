@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon index.js",
-    "deploy": "git subtree push --prefix web heroku master"
+    "open": "open https://tt-217-288-933-sit-209.herokuapp.com/login",
+    "deploy": "cd ../ && git subtree push --prefix web heroku master && cd web"
   },
   "author": "Tim Tattersall",
   "license": "ISC",

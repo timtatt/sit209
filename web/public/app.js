@@ -2,6 +2,7 @@
 	var self, table;
 
 	var apiUrl = 'https://217-288-933-sit-209.now.sh/api';
+	var mqttUrl = 'http://localhost:5001';
 	var devices = [];
 	var currentUser = localStorage.getItem('user') || false;
 	var isAdmin = localStorage.getItem('isAdmin') || false;
@@ -47,7 +48,7 @@
 			}).catch(err => {
 				console.error('Error:', err);
 			});
-		} else if (window.location.pathname != '/login') {
+		} else if (window.location.pathname != '/login' && window.location.pathname != '/register') {
 			location.href = '/login';
 		}
 	}
@@ -109,7 +110,32 @@
 				name.val('');
 			},
 			sendCommand: function(event) {
+				var deviceId = $('#deviceId');
 				var command = $('#command');
+
+				$.ajax({
+					url: `${apiUrl}/authenticate`,
+					method: 'post',
+					data: JSON.stringify({
+						command: command.val(),
+						deviceId: deviceId.val(),
+					}),
+					contentType: 'application/json',
+					dataType: 'json',
+				}).then(res => {
+					if (res.status == 'error') {
+						$('#navbar + .container').prepend(`<div class="alert alert-danger" id="error-login">${res.message}</div>`);
+						return;
+					}
+
+					localStorage.setItem('user', res.user);
+					localStorage.setItem('isAdmin', res.isAdmin);
+
+					location.href = '/';
+				}).catch(error => {
+					console.error('Error:', error);
+				});
+				
 				console.log(`command is: ${command.val()}`);
 			},
 			logoutOfAccount: function(event) {
@@ -125,7 +151,7 @@
 				var password = $('#password');
 
 				$.ajax({
-					url: `${apiUrl}/authenticate`,
+					url: `${mqttUrl}/send-command`,
 					method: 'post',
 					data: JSON.stringify({
 						user: username.val(),
@@ -138,9 +164,6 @@
 						$('#navbar + .container').prepend(`<div class="alert alert-danger" id="error-login">${res.message}</div>`);
 						return;
 					}
-
-					localStorage.setItem('user', res.user);
-					localStorage.setItem('isAdmin', res.isAdmin);
 
 					location.href = '/';
 				}).catch(error => {
